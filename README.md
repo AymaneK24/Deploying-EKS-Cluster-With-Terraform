@@ -1,9 +1,14 @@
+# Deploying Netflix Clone Application On EKS Cluster with Terraform.
 
-# Deploying an EKS Cluster with Terraform
+## *Usage :*
 
-This guide provides step-by-step instructions to deploy a production-ready Amazon EKS cluster using Terraform.
+This guide provides step-by-step instructions to deploy a production-ready Amazon EKS cluster using Terraform. for the purpose of learning Kubernetes !
 
-## Prerequisites
+I used  EKS Terraform Module : Documentation Link --> [https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest]()
+
+![1746302022312](image/README/1746302022312.png)
+
+## *Prerequisites*
 
 Before you begin, ensure you have:
 
@@ -47,12 +52,12 @@ sudo mv kubectl /usr/local/bin/
 aws configure
 ```
 
-Enter your:
+Enter your 
 
 - AWS Access Key ID
 - AWS Secret Access Key
 - Default region name ( any region you want but prefer to use the one where you are deploying your cluster me in us-east-1)
-- Default output format (e.g., `json`)
+- Default output format ( leave it for default )
 
 ## Deployment
 
@@ -94,8 +99,10 @@ aws eks update-kubeconfig --region us-east-1 --name KENBOUCH-EKS-Cluster
 2. Verify cluster access:
 
 ```bash
+
 kubectl cluster-info
 kubectl get nodes
+
 ```
 
 ## Cluster Information
@@ -105,6 +112,34 @@ kubectl get nodes
 - **Node Group**:
   - Instance type: t3.medium
   - Number of nodes: 1 (fixed size)
+
+## Deploying My Application Netflix
+
+I deployed on the cluster thr image of a netflix clone i already used in a previous project, you can use the image what ever you want, just make sure it's exposed on the port 80, if not change that in the dockerfile.
+
+Go check the app.yaml file, and you will see the image i used it's aymanekh24/netflix , the name of the running container is netflix-container
+
+then :
+
+```
+kubectl apply -f app.yaml
+```
+
+run this :
+
+```
+kubectl get svc
+```
+
+to see the running services, there you will also get the endpoint of the application Neflix (External-IP)
+
+![1746314145060](image/README/1746314145060.png)
+
+![1746314152579](image/README/1746314152579.png)
+
+![1746314010694](image/README/1746314010694.jpg)
+
+![1746314110068](image/README/1746314110068.png)
 
 ## Clean Up
 
@@ -120,25 +155,62 @@ terraform destroy
 - The Terraform module creates multiple AWS resources including VPC, subnets, IAM roles, and security groups, etc
 - For production environments, consider modifying the node group configuration for high availability
 
-## Troubleshooting
+## Permission Configuration
 
-If you encounter issues:
+You may encounter the following error when trying to access your cluster:
 
-- Verify your AWS credentials are correct
-- Check that your IAM user has sufficient permissions
-- Review CloudFormation stacks in the AWS console for errors
-- Examine Terraform and CloudWatch logs for detailed error messages
-- And also you can upgrade the kubectl and awscli if you already have them installed
-
-## NB :
-
-Even if you have IAM administrator permissions for your IAM user, AWS restrict access to the cluster so things you may need to do : 
-
-* check access entries in the AWS Console and make sure the IAM user is part of it
-* attach an iam role to the EKS Cluster from the console, and remember the arn of the role then :
-
-```bash
-aws eks update-kubeconfig --region us-east-1 --name KENBOUCH-EKS-Cluste --role-arn the-arn-of-the-role
+```
+You must be logged in to the server (Unauthorized)
 ```
 
-then repeate the other steps, and you should be good to go !
+This occurs because AWS EKS requires explicit permission grants, even for IAM users with AdministratorAccess.
+
+### Resolution Methods
+
+#### Method 1: Console Configuration
+
+1. Navigate to EKS Service → Your Cluster → Access
+2. Add a new access entry for your IAM user
+3. Assign these recommended policies:
+   - `AmazonEKSAdminPolicy`
+   - `AmazonEKSClusterAdminPolicy`
+
+#### Method 2: Command Line Solution
+
+1. First reset your kubeconfig:
+
+   ```bash
+   rm ~/.kube/config
+   ```
+2. Then update your configuration with proper permissions:
+
+   ```bash
+   aws eks update-kubeconfig --region us-east-1 --name KENBOUCH-EKS-Cluster
+   ```
+3. Run The script i provided you after modifying it :
+
+   ```bash
+   sh permission.sh
+   ```
+
+   then run again 1 and 2 to be sure then you are good !
+
+#### Method 3: Using IAM Role (Alternative Approach)
+
+1. AYou Will find the ARN in console in EKS Under Access Entries a default Role created
+2. Note the role ARN
+3. Configure kubectl with the role:
+   ```bash
+   aws eks update-kubeconfig --region us-east-1 --name KENBOUCH-EKS-Cluster \
+   --role-arn arn:aws:iam::123456789012:role/EKSAdminRole
+   ```
+
+### Important Notes
+
+What i learned : 
+
+- AWS EKS has separate permission requirements from standard IAM policies
+- AdministratorAccess IAM policy doesn't automatically grant EKS cluster access
+- Always verify access entries in the EKS console after cluster creation
+
+This permission setup only needs to be completed once per cluster. After proper configuration, you should have persistent access to manage your Kubernetes resources.

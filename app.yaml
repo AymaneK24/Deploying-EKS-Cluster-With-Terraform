@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netflix-clone-deployment
+spec:
+  replicas: 1  # Optional: Explicitly set replica count
+  selector:
+    matchLabels:
+      app: netflix-clone-app  # Must match Pod labels
+  template:
+    metadata:
+      labels:
+        app: netflix-clone-app  # Changed to match selector
+    spec:
+      containers:
+        - name: netflix-container  # Better naming (lowercase, hyphens)
+          image: aymanekh24/netflix  # Your Netflix image
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - name: http
+              containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netflix-clone-service  # Renamed to match app
+spec:
+  type: LoadBalancer
+  selector:
+    app: netflix-clone-app  # Must match Pod labels
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80  # Refers to containerPort
