@@ -129,3 +129,16 @@ If you encounter issues:
 - Review CloudFormation stacks in the AWS console for errors
 - Examine Terraform and CloudWatch logs for detailed error messages
 - And also you can upgrade the kubectl and awscli if you already have them installed
+
+## NB :
+
+Even if you have IAM administrator permissions for your IAM user, AWS restrict access to the cluster so things you may need to do : 
+
+* check access entries in the AWS Console and make sure the IAM user is part of it
+* attach an iam role to the EKS Cluster from the console, and remember the arn of the role then :
+
+```bash
+aws eks update-kubeconfig --region us-east-1 --name KENBOUCH-EKS-Cluste --role-arn the-arn-of-the-role
+```
+
+then repeate the other steps, and you should be good to go !
