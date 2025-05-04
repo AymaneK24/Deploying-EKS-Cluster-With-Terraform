@@ -52,7 +52,7 @@ sudo mv kubectl /usr/local/bin/
 aws configure
 ```
 
-Enter your 
+Enter your
 
 - AWS Access Key ID
 - AWS Secret Access Key
@@ -133,6 +133,11 @@ kubectl get svc
 
 to see the running services, there you will also get the endpoint of the application Neflix (External-IP)
 
+the example below is of deploying an nginx server after i did  the same but changeed first the yaml to be compatible for my netflix application.
+
+![1746398621875](image/README/1746398621875.png)
+
+
 ![1746314145060](image/README/1746314145060.png)
 
 ![1746314152579](image/README/1746314152579.png)
@@ -207,10 +212,12 @@ This occurs because AWS EKS requires explicit permission grants, even for IAM us
 
 ### Important Notes
 
-What i learned : 
+What i learned :
 
 - AWS EKS has separate permission requirements from standard IAM policies
 - AdministratorAccess IAM policy doesn't automatically grant EKS cluster access
 - Always verify access entries in the EKS console after cluster creation
 
 This permission setup only needs to be completed once per cluster. After proper configuration, you should have persistent access to manage your Kubernetes resources.
+
+**© Aymane Kenbouch**
